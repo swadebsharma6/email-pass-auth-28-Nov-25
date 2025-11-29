@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import auth from "../../firebase/firebase.config";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link } from "react-router";
 
 const Login = () => {
         const [errorMsg, setErrorMsg] = useState('');
         const [success, setSuccess] = useState('');
-        const [showPass, setShowPass] = useState(false);
+
+        const emailRef = useRef();
+
+
 
           const handleLogin =(e)=>{
             e.preventDefault();
@@ -27,9 +30,16 @@ const Login = () => {
             .then(result =>{
               const loginUser = result.user;
               console.log('login', loginUser);
+              if(!result.user.emailVerified){
+                alert('Please verify your email address')
+              }
+              else{
+                setSuccess('User login Successfully');;
+              }
               // Reset
               setErrorMsg('');
-              setSuccess('User login Successfully');
+              
+              
             })
             .catch(error =>{
               setErrorMsg(error.message);
@@ -37,6 +47,21 @@ const Login = () => {
             })
 
             
+      }
+
+      const handleForgetPassword =()=>{
+         
+          const email = emailRef.current.value;
+          setErrorMsg('');
+
+          // Send password reset email
+          sendPasswordResetEmail(auth, email)
+          .then(()=>{
+            alert('A password reset email is send, please reset your password');
+          })
+          .catch(error =>{
+            setErrorMsg(error.message);
+          })
       }
 
       return (
@@ -47,23 +72,17 @@ const Login = () => {
                        <div className="card-body">
                          <fieldset className="fieldset">
                            <label className="label">Email</label>
-                           <input type="email" name="email" className="input" placeholder="Email" />
+                           <input type="email" ref={emailRef} name="email" className="input" placeholder="Email" />
                            <label className="label">Password</label>
                            <div className="relative">
                              <input
-                             type={showPass ? 'text' : 'password'}
+                             type= 'password'
                              className="input"
                              name="password"
                              placeholder="Password"
                            />
-                           <button
-                           onClick={()=> setShowPass(!showPass)}
-                            className="btn btn-xs absolute top-2 right-6"> {
-                             showPass ? <FaEyeSlash /> : <FaEye />
-                            } 
-                            </button>
                            </div>
-                           <div>
+                           <div onClick={handleForgetPassword}>
                              <a className="link link-hover">Forgot password?</a>
                            </div>
                            <input className="btn btn-neutral mt-4" type="submit"  value="Login" />
