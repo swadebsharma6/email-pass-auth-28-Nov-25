@@ -1,0 +1,87 @@
+import { useState } from "react";
+import auth from "../../firebase/firebase.config";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link } from "react-router";
+
+const Login = () => {
+        const [errorMsg, setErrorMsg] = useState('');
+        const [success, setSuccess] = useState('');
+        const [showPass, setShowPass] = useState(false);
+
+          const handleLogin =(e)=>{
+            e.preventDefault();
+            const form = e.target;
+            const email = form.email.value;
+            const password = form.password.value;
+            // validate the password
+
+            const passwordRegExp = /(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]){8}/;
+            if(passwordRegExp.test(password) === false){
+              setErrorMsg('Password must have a capital, smaller, and a special character');
+              return;
+            }
+
+            // create user
+            signInWithEmailAndPassword(auth, email, password)
+            .then(result =>{
+              const loginUser = result.user;
+              console.log('login', loginUser);
+              // Reset
+              setErrorMsg('');
+              setSuccess('User login Successfully');
+            })
+            .catch(error =>{
+              setErrorMsg(error.message);
+              setSuccess('');
+            })
+
+            
+      }
+
+      return (
+             <div className="hero bg-base-200 min-h-[700px]">
+                   
+                     <form onSubmit={handleLogin} className="card bg-base-100  w-full mx-auto max-w-sm shadow-2xl">
+                        <h1 className="text-3xl font-bold text-center">Login now!</h1>
+                       <div className="card-body">
+                         <fieldset className="fieldset">
+                           <label className="label">Email</label>
+                           <input type="email" name="email" className="input" placeholder="Email" />
+                           <label className="label">Password</label>
+                           <div className="relative">
+                             <input
+                             type={showPass ? 'text' : 'password'}
+                             className="input"
+                             name="password"
+                             placeholder="Password"
+                           />
+                           <button
+                           onClick={()=> setShowPass(!showPass)}
+                            className="btn btn-xs absolute top-2 right-6"> {
+                             showPass ? <FaEyeSlash /> : <FaEye />
+                            } 
+                            </button>
+                           </div>
+                           <div>
+                             <a className="link link-hover">Forgot password?</a>
+                           </div>
+                           <input className="btn btn-neutral mt-4" type="submit"  value="Login" />
+                         </fieldset>
+                         
+                     <p className="text-center">No  account ? <Link to='/register'>Register</Link></p>
+                        
+                     {
+                       success && <p className="text-center text-primary font-bold">User login successfully</p>
+                     }
+                     {
+                       errorMsg && <p className="text-center text-red-500 font-bold">{errorMsg}</p>
+                     }
+                       </div>
+                     </form>
+                      
+                   </div>
+      );
+};
+
+export default Login;
